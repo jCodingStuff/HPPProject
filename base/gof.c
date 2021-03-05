@@ -5,8 +5,8 @@
 int main(int argc, char const *argv[]) {
 
   // Check that arguments are provided
-  if (argc != 3) {
-    printf("Usage: %s n m n_steps\n", argv[0]);
+  if (argc != 4) {
+    printf("Usage: %s n m nSteps\n", argv[0]);
     return -1;
   }
 
