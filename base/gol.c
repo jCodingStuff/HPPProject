@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "gof.h"
+#include "gol.h"
 
 int main(int argc, char const *argv[]) {
 
