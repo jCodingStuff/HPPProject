@@ -1,5 +1,6 @@
 #include <stdlib.h>
-
+#include <stdio.h>
+#include <sys/time.h>
 
 
 // Forward declaration of static methods
@@ -23,6 +24,7 @@ char** allocateMatrix(const int nRows, const int nCols) {
   for (i = 0; i < nRows; i++) {
     mat[i] = (char*) malloc(nCols * sizeof(char));
   }
+  return mat;
 }
 
 
@@ -78,4 +80,42 @@ void createInitialState(char** mat, const int nRows, const int nCols,
 static inline double cRandom() {
   // https://stackoverflow.com/questions/6218399/how-to-generate-a-random-number-between-0-and-1
   return (double) rand() / (double) RAND_MAX;
+}
+
+
+
+/*
+ * Function printMatrix
+ * --------------------
+ *  Print matrix to console
+ *
+ *  mat: pointer to the first element of the matrix
+ *  nRows: number of rows of the matrix
+ *  nCols: number of columns of the matrix
+ */
+void printMatrix(char** mat, const int nRows, const int nCols) {
+  int i, j;
+  for (i = 0; i < nRows; i++) {
+    printf("[ ");
+    for (j = 0; j < nCols; j++) {
+      printf("%d ", mat[i][j]);
+    }
+    printf("]\n");
+  }
+}
+
+
+
+/*
+* Function: get_wall_seconds
+* ----------------------
+*  Fetch the current wall time
+*
+*  returns: the current wall time
+*/
+double get_wall_seconds() {
+  struct timeval tv;
+  gettimeofday(&tv, NULL);
+  double seconds = tv.tv_sec + (double)tv.tv_usec / 1000000;
+  return seconds;
 }

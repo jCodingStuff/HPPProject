@@ -1,9 +1,9 @@
-CC = gcc
-LD = gcc
+CC = gcc-10
+LD = gcc-10
 CFLAGS = -g -Wall -Werror
 LDFLAGS=
 RM = /bin/rm -f
-OBJS = gol.o
+OBJS = gol.o utils.o
 EXEC = gol
 
 all: $(EXEC)
@@ -11,8 +11,11 @@ all: $(EXEC)
 $(EXEC): $(OBJS)
 	$(LD) -o $(EXEC) $(OBJS) $(LDFLAGS)
 
-gof.o: gol.c gol.h
+gol.o: gol.c gol.h utils.h
 	$(CC) $(CFLAGS) -c gol.c
+
+utils.o: utils.c utils.h
+	$(CC) $(CFLAGS) -c utils.c
 
 clean:
 	$(RM) $(EXEC) $(OBJS)
