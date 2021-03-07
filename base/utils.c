@@ -38,7 +38,7 @@ char** allocateMatrix(const int nRows, const int nCols) {
  *  nRows: number of rows of the matrix
  *  nCols: number of columns of the matrix
  */
-void freeMatrix(char** mat, const int nRows, const int nCols) {
+void freeMatrix(char** restrict mat, const int nRows, const int nCols) {
   int i;
   for (i = 0; i < nRows; i++) {
     free(mat[i]);
@@ -58,7 +58,7 @@ void freeMatrix(char** mat, const int nRows, const int nCols) {
  *  nCols: number of columns of the matrix
  *  prob: probability of a cell being alive
  */
-void createInitialState(char** mat, const int nRows, const int nCols,
+void createInitialState(char** restrict mat, const int nRows, const int nCols,
                         const double prob) {
   int i, j;
   for (i = 0; i < nRows; i++) {
@@ -93,7 +93,7 @@ static inline double cRandom() {
  *  nRows: number of rows of the matrix
  *  nCols: number of columns of the matrix
  */
-void printMatrix(char** mat, const int nRows, const int nCols) {
+void printMatrix(char** restrict mat, const int nRows, const int nCols) {
   int i, j;
   for (i = 0; i < nRows; i++) {
     printf("[ ");

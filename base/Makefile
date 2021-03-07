@@ -1,6 +1,6 @@
-CC = gcc-10
-LD = gcc-10
-CFLAGS = -g -Wall -Werror
+CC = gcc
+LD = gcc
+CFLAGS = -g -O3 -Wall -Winline -march=native
 LDFLAGS=
 RM = /bin/rm -f
 OBJS = gol.o utils.o
