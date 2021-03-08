@@ -37,8 +37,8 @@ int main(int argc, char const *argv[]) {
   srand(1);
 
   // Initialize data structures
-  // state = allocateMatrix(n, m);
-  // other = allocateMatrix(n, m);
+  state = allocateMatrix(n, m);
+  other = allocateMatrix(n, m);
 
   // Create initial state
   createInitialState(state, n, m, prob);
