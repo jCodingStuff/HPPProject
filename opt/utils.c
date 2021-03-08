@@ -4,22 +4,26 @@
 #include "utils.h"
 
 
+// Forward declaration of static methods
+static inline double cRandom();
+
+
 
 /*
  * Function allocateMatrix
  * -----------------------
  *  Allocate memory for a matrix
  *
- *  n: number of rows of the matrix
- *  m: number of columns of the matrix
+ *  nRows: number of rows of the matrix
+ *  nCols: number of columns of the matrix
  *
  *  returns: a pointer to the first element of the matrix
  */
-int** allocateMatrix(int n, int m) {
-  int** mat = (int**) malloc(n * sizeof(int*));
+char** allocateMatrix(const int nRows, const int nCols) {
+  char** mat = (char**) malloc(nRows * sizeof(char*));
   int i;
-  for (i = 0; i < n; i++) {
-    mat[i] = (int*) malloc(m * sizeof(int));
+  for (i = 0; i < nRows; i++) {
+    mat[i] = (char*) malloc(nCols * sizeof(char));
   }
   return mat;
 }
@@ -32,12 +36,12 @@ int** allocateMatrix(int n, int m) {
  *  Free memory occupied by a matrix
  *
  *  mat: pointer to the first element of the matrix
- *  n: number of rows of the matrix
- *  m: number of columns of the matrix
+ *  nRows: number of rows of the matrix
+ *  nCols: number of columns of the matrix
  */
-void freeMatrix(int** mat, int n, int m) {
+void freeMatrix(char** restrict mat, const int nRows, const int nCols) {
   int i;
-  for (i = 0; i < n; i++) {
+  for (i = 0; i < nRows; i++) {
     free(mat[i]);
   }
   free(mat);
@@ -51,14 +55,15 @@ void freeMatrix(int** mat, int n, int m) {
  *  Create an initial state for the Game of Life
  *
  *  mat: pointer to the first element of the state matrix
- *  n: number of rows of the matrix
- *  m: number of columns of the matrix
+ *  nRows: number of rows of the matrix
+ *  nCols: number of columns of the matrix
  *  prob: probability of a cell being alive
  */
-void createInitialState(int** mat, int n, int m, double prob) {
+void createInitialState(char** restrict mat, const int nRows, const int nCols,
+                        const double prob) {
   int i, j;
-  for (i = 0; i < n; i++) {
-    for (j = 0; j < m; j++) {
+  for (i = 0; i < nRows; i++) {
+    for (j = 0; j < nCols; j++) {
       mat[i][j] = cRandom() <= prob ? 1 : 0;
     }
   }
@@ -73,7 +78,7 @@ void createInitialState(int** mat, int n, int m, double prob) {
  *
  *  returns: the generated number
  */
-double cRandom() {
+static inline double cRandom() {
   // https://stackoverflow.com/questions/6218399/how-to-generate-a-random-number-between-0-and-1
   return (double) rand() / (double) RAND_MAX;
 }
@@ -86,14 +91,14 @@ double cRandom() {
  *  Print matrix to console
  *
  *  mat: pointer to the first element of the matrix
- *  n: number of rows of the matrix
- *  m: number of columns of the matrix
+ *  nRows: number of rows of the matrix
+ *  nCols: number of columns of the matrix
  */
-void printMatrix(int** mat, int n, int m) {
+void printMatrix(char** restrict mat, const int nRows, const int nCols) {
   int i, j;
-  for (i = 0; i < n; i++) {
+  for (i = 0; i < nRows; i++) {
     printf("[ ");
-    for (j = 0; j < m; j++) {
+    for (j = 0; j < nCols; j++) {
       printf("%d ", mat[i][j]);
     }
     printf("]\n");

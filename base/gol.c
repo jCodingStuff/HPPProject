@@ -6,14 +6,9 @@
 
 
 
-// Static function declarations
-static inline void decide(const char alive, char** restrict future, const int i,
-                          const int j, const char neighbors);
-
-
-char** restrict state; // State at even times (0, 2, 4, etc.)
-char** restrict other; // State at odd times (1, 3, 5, etc.)
-
+int** state;
+int** other;
+int** tmp;  // Temporal pointer
 
 
 int main(int argc, char const *argv[]) {
@@ -25,10 +20,10 @@ int main(int argc, char const *argv[]) {
   }
 
   // Parse arguments
-  const int n = atoi(argv[1]);
-  const int m = atoi(argv[2]);
-  const double prob = atof(argv[3]);
-  const int nSteps = atoi(argv[4]);
+  int n = atoi(argv[1]);
+  int m = atoi(argv[2]);
+  double prob = atof(argv[3]);
+  int nSteps = atoi(argv[4]);
   // printf("%d %d %lf %d\n", n, m, prob, nSteps);
 
   // Check that arguments are valid
@@ -38,11 +33,12 @@ int main(int argc, char const *argv[]) {
   }
 
   // Initialize arbitrary seed for random numbers
-  srand(time(NULL));
+  // srand(time(NULL));
+  srand(1);
 
   // Initialize data structures
-  state = allocateMatrix(n, m);
-  other = allocateMatrix(n, m);
+  // state = allocateMatrix(n, m);
+  // other = allocateMatrix(n, m);
 
   // Create initial state
   createInitialState(state, n, m, prob);
@@ -77,134 +73,70 @@ int main(int argc, char const *argv[]) {
  *  m: number of columns of the matrix
  *  nSteps: number of iterations (assumed to be even)
  */
-void evolve(const int n, const int m, const int nSteps) {
+void evolve(int n, int m, int nSteps) {
   int k, i, j;
-  char field;
-  for (k = 0; k < nSteps; k+=2) {
+  int neighbors;
+  int topleft, top, topright, left, right, botleft, bot, botright;
+  for (k = 0; k < nSteps; k++) {
 
-    // FIRST ITERATION
-    {
-    // First row (i=0)
-      // First column (j=0)
-      field = state[n-1][m-1] + state[n-1][0] + state[n-1][1]
-                  + state[0][m-1] + state[0][0] + state[0][1]
-                  + state[1][m-1] + state[1][0] + state[1][1];
-      decide(state[0][0], other, 0, 0, field);
-      // Other columns (j=1 to m-2)
-      for (j=1; j <= m - 2; j++) {
-        field = state[n-1][j-1] + state[n-1][j] + state[n-1][j+1]
-                    + state[0][j-1] + state[0][j] + state[0][j+1]
-                    + state[1][j-1] + state[1][j] + state[1][j+1];
-        decide(state[0][j], other, 0, j, field);
+    // Generate next state
+    for (i = 0; i < n; i++) {
+      for (j = 0; j < m; j++) {
+        // Select the correct elements for non-diagonal
+        top = i == 0 ? state[n-1][j] : state[i-1][j];
+        bot = i == n-1 ? state[0][j] : state[i+1][j];
+        left = j == 0 ? state[i][m-1] : state[i][j-1];
+        right = j == m-1 ? state[i][0] : state[i][j+1];
+        // topleft
+        if (i == 0 && j == 0) {
+          topleft = state[n-1][m-1];
+        } else if (i == 0) {
+          topleft = state[n-1][j-1];
+        } else if (j == 0) {
+          topleft = state[i-1][m-1];
+        } else {
+          topleft = state[i-1][j-1];
+        }
+        // topright
+        if (i == 0 && j == m-1) {
+          topright = state[n-1][0];
+        } else if (i == 0) {
+          topright = state[n-1][j+1];
+        } else if (j == m-1) {
+          topright = state[i-1][0];
+        } else {
+          topright = state[i-1][j+1];
+        }
+        // botleft
+        if (i == n-1 && j == 0) {
+          botleft = state[0][m-1];
+        } else if (i == n-1) {
+          botleft = state[0][j-1];
+        } else if (j == 0) {
+          botleft = state[i+1][m-1];
+        } else {
+          botleft = state[i+1][j-1];
+        }
+        // botright
+        if (i == n-1 && j == m-1) {
+          botright = state[0][0];
+        } else if (i == n-1) {
+          botright = state[0][j+1];
+        } else if (j == m-1) {
+          botright = state[i+1][0];
+        } else {
+          botright = state[i+1][j+1];
+        }
+        // Count neighbors and decide
+        neighbors = topleft + top + topright + left + right + botleft + bot + botright;
+        decide(state[i][j], other, i, j, neighbors);
       }
-      // Last column (j=m-1)
-      field = state[n-1][m-2] + state[n-1][m-1] + state[n-1][0]
-                  + state[0][m-2] + state[0][m-1] + state[0][0]
-                  + state[1][m-2] + state[1][m-1] + state[1][0];
-      decide(state[0][m-1], other, 0, m-1, field);
-
-    // Other rows (i=1 to n-2)
-    for (i = 1; i < n-2; i++) {
-      // First column (j=0)
-      field = state[i-1][m-1] + state[i-1][0] + state[i-1][1]
-                  + state[i][m-1] + state[i][0] + state[i][1]
-                  + state[i+1][m-1] + state[i+1][0] + state[i+1][1];
-      decide(state[i][0], other, i, 0, field);
-      // Other columns (j=1 to m-2)
-      for (j=1; j <= m - 2; j++) {
-        field = state[i-1][j-1] + state[i-1][j] + state[i-1][j+1]
-                    + state[i][j-1] + state[i][j] + state[i][j+1]
-                    + state[i+1][j-1] + state[i+1][j] + state[i+1][j+1];
-        decide(state[i][j], other, i, j, field);
-      }
-      // Last column (j=m-1)
-      field = state[i-1][m-2] + state[i-1][m-1] + state[i-1][0]
-                  + state[i][m-2] + state[i][m-1] + state[i][0]
-                  + state[i+1][m-2] + state[i+1][m-1] + state[i+1][0];
-      decide(state[i][m-1], other, i, m-1, field);
     }
 
-    // Last row (i=n-1)
-      // First column (j=0)
-      field = state[n-2][m-1] + state[n-2][0] + state[n-2][1]
-                  + state[n-1][m-1] + state[n-1][0] + state[n-1][1]
-                  + state[0][m-1] + state[0][0] + state[0][1];
-      decide(state[n-1][0], other, n-1, 0, field);
-      // Other columns (j=1 to m-2)
-      for (j=1; j <= m - 2; j++) {
-        field = state[n-2][j-1] + state[n-2][j] + state[n-2][j+1]
-                    + state[n-1][j-1] + state[n-1][j]  + state[n-1][j+1]
-                    + state[0][j-1] + state[0][j] + state[0][j+1];
-        decide(state[n-1][j], other, n-1, j, field);
-      }
-      // Last column (j=m-1)
-      field = state[n-2][m-2] + state[n-2][m-1] + state[n-2][0]
-                  + state[n-1][m-2] + state[n-1][m-1] + state[n-1][0]
-                  + state[0][m-2] + state[0][m-1] + state[0][0];
-      decide(state[n-1][m-1], other, n-1, m-1, field);
-    }
-
-    // SECOND ITERATION
-    {
-    // First row (i=0)
-      // First column (j=0)
-      field = other[n-1][m-1] + other[n-1][0] + other[n-1][1]
-                  + other[0][m-1] + other[0][0] + other[0][1]
-                  + other[1][m-1] + other[1][0] + other[1][1];
-      decide(other[0][0], state, 0, 0, field);
-      // Other columns (j=1 to m-2)
-      for (j=1; j <= m - 2; j++) {
-        field = other[n-1][j-1] + other[n-1][j] + other[n-1][j+1]
-                    + other[0][j-1] + other[0][j] + other[0][j+1]
-                    + other[1][j-1] + other[1][j] + other[1][j+1];
-        decide(other[0][j], state, 0, j, field);
-      }
-      // Last column (j=m-1)
-      field = other[n-1][m-2] + other[n-1][m-1] + other[n-1][0]
-                  + other[0][m-2] + other[0][m-1] + other[0][0]
-                  + other[1][m-2] + other[1][m-1] + other[1][0];
-      decide(other[0][m-1], state, 0, m-1, field);
-
-    // Other rows (i=1 to n-2)
-    for (i = 1; i < n-2; i++) {
-      // First column (j=0)
-      field = other[i-1][m-1] + other[i-1][0] + other[i-1][1]
-                  + other[i][m-1] + other[i][0] + other[i][1]
-                  + other[i+1][m-1] + other[i+1][0] + other[i+1][1];
-      decide(other[i][0], state, i, 0, field);
-      // Other columns (j=1 to m-2)
-      for (j=1; j <= m - 2; j++) {
-        field = other[i-1][j-1] + other[i-1][j] + other[i-1][j+1]
-                    + other[i][j-1] + other[i][j] + other[i][j+1]
-                    + other[i+1][j-1] + other[i+1][j] + other[i+1][j+1];
-        decide(other[i][j], state, i, j, field);
-      }
-      // Last column (j=m-1)
-      field = other[i-1][m-2] + other[i-1][m-1] + other[i-1][0]
-                  + other[i][m-2] + other[i][m-1] + other[i][0]
-                  + other[i+1][m-2] + other[i+1][m-1] + other[i+1][0];
-      decide(other[i][m-1], state, i, m-1, field);
-    }
-
-    // Last row (i=n-1)
-      // First column (j=0)
-      field = other[n-2][m-1] + other[n-2][0] + other[n-2][1]
-                  + other[n-1][m-1] + other[n-1][0] + other[n-1][1]
-                  + other[0][m-1] + other[0][0] + other[0][1];
-      decide(other[n-1][0], state, n-1, 0, field);
-      // Other columns (j=1 to m-2)
-      for (j=1; j <= m - 2; j++) {
-        field = other[n-2][j-1] + other[n-2][j] + other[n-2][j+1]
-                    + other[n-1][j-1] + other[n-1][j]  + other[n-1][j+1]
-                    + other[0][j-1] + other[0][j] + other[0][j+1];
-        decide(other[n-1][j], state, n-1, j, field);
-      }
-      // Last column (j=m-1)
-      field = other[n-2][m-2] + other[n-2][m-1] + other[n-2][0]
-                  + other[n-1][m-2] + other[n-1][m-1] + other[n-1][0]
-                  + other[0][m-2] + other[0][m-1] + other[0][0];
-      decide(other[n-1][m-1], state, n-1, m-1, field);
-    }
+    // Make state point to other and other point to state
+    tmp = state;
+    state = other;
+    other = tmp;
 
   }
 }
@@ -219,14 +151,17 @@ void evolve(const int n, const int m, const int nSteps) {
  *  future: pointer to the first element of the future state matrix
  *  i: index for row
  *  j: index for column
- *  field: number of alive neighbors + the cell itself
+ *  neighbors: number of alive neighbors
  */
-static inline void decide(const char alive, char** restrict future, const int i,
-                          const int j, const char field) {
-  if (field == 3) {
+void decide(int alive, int** future, int i, int j, int neighbors) {
+  if (alive && neighbors < 2) {
+    future[i][j] = 0;
+  } else if (alive && (neighbors == 2 || neighbors == 3)) {
     future[i][j] = 1;
-  } else if (field == 4) {
-    future[i][j] = alive;
+  } else if (alive && neighbors > 3) {
+    future[i][j] = 0;
+  } else if (!alive && neighbors == 3) {
+    future[i][j] = 1;
   } else {
     future[i][j] = 0;
   }

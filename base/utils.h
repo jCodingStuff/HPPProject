@@ -1,11 +1,11 @@
 #ifndef UTILS_H
 #define UTILS_H
 
-void printMatrix(char** restrict mat, const int nRows, const int nCols);
-char** allocateMatrix(const int nRows, const int nCols);
-void freeMatrix(char** restrict mat, const int nRows, const int nCols);
-void createInitialState(char** restrict mat, const int nRows, const int nCols,
-                        const double prob);
+void printMatrix(int** mat, int n, int m);
+int** allocateMatrix(int n, int m);
+void freeMatrix(int** mat, int n, int m);
+void createInitialState(int** mat, int n, int m, double prob);
 double get_wall_seconds();
+double cRandom();
 
 #endif
