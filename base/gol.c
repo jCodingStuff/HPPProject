@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 #include "gol.h"
 #include "utils.h"
 
@@ -36,6 +37,9 @@ int main(int argc, char const *argv[]) {
     return -1;
   }
 
+  // Initialize arbitrary seed for random numbers
+  srand(time(NULL));
+
   // Initialize data structures
   state = allocateMatrix(n, m);
   other = allocateMatrix(n, m);
@@ -43,6 +47,7 @@ int main(int argc, char const *argv[]) {
   // Create initial state
   createInitialState(state, n, m, prob);
 
+  // printf("Initial state:\n");
   // printMatrix(state, n, m);
 
   double t1 = get_wall_seconds();
@@ -50,6 +55,9 @@ int main(int argc, char const *argv[]) {
   evolve(n, m, nSteps);
   // Print time it took to do the simulation
   printf("%lf\n", get_wall_seconds() - t1);
+
+  // printf("Final state:\n");
+  // printMatrix(state, n, m);
 
   // Free data structures
   freeMatrix(state, n, m);
