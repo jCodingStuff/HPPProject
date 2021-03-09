@@ -47,10 +47,10 @@ block_t* initBlocks(const int nb, const int mb) {
     for (j = 0; j < mb; j++) {
       mat_b[MINDEX(i, j, mb)].active = 1;  // Set as active for initial seed
       // Set non-diagonal neighbors
-      mat_b[MINDEX(i, j, mb)].top = i == 0 ? mat_b + MINDEX(nb-1, j, mb) : mat_b + MINDEX(i-1, j, mb);
-      mat_b[MINDEX(i, j, mb)].bot = i == nb-1 ? mat_b + MINDEX(0, j, mb) : mat_b + MINDEX(i+1, j, mb);
-      mat_b[MINDEX(i, j, mb)].left = j == 0 ? mat_b + MINDEX(i, mb-1, mb) : mat_b + MINDEX(i, j-1, mb);
-      mat_b[MINDEX(i, j, mb)].right = j == mb-1 ? mat_b + MINDEX(i, 0, mb) : mat_b + MINDEX(i, j+1, mb);
+      mat_b[MINDEX(i, j, mb)].top = i == 0 ? (mat_b + MINDEX(nb-1, j, mb)) : (mat_b + MINDEX(i-1, j, mb));
+      mat_b[MINDEX(i, j, mb)].bot = i == nb-1 ? (mat_b + MINDEX(0, j, mb)) : (mat_b + MINDEX(i+1, j, mb));
+      mat_b[MINDEX(i, j, mb)].left = j == 0 ? (mat_b + MINDEX(i, mb-1, mb)) : (mat_b + MINDEX(i, j-1, mb));
+      mat_b[MINDEX(i, j, mb)].right = j == mb-1 ? (mat_b + MINDEX(i, 0, mb)) : (mat_b + MINDEX(i, j+1, mb));
       // Set diagonal neighbors
       // topleft
       {
@@ -168,6 +168,28 @@ void printMatrix(block_t* restrict mat, const int nb, const int mb) {
       }
       printf("]\n");
     }
+  }
+}
+
+
+
+/*
+ * Function printChars
+ * --------------------
+ *  Print matrix of chars to console
+ *
+ *  mat: pointer to the first element of the matrix
+ *  n: number of rows of the matrix
+ *  m: number of columns of the matrix
+ */
+void printChars(char* restrict mat, const int n, const int m) {
+  int i, j;
+  for (i = 0; i < n; i++) {
+    printf("[ ");
+    for (j = 0; j < m; j++) {
+      printf("%d ", mat[MINDEX(i, j, m)]);
+    }
+    printf("]\n");
   }
 }
 
