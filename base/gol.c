@@ -14,8 +14,8 @@ int** tmp;  // Temporal pointer
 int main(int argc, char const *argv[]) {
 
   // Check that arguments are provided
-  if (argc != 5) {
-    printf("Usage: %s n m prob nSteps\n", argv[0]);
+  if (argc != 6) {
+    printf("Usage: %s n m prob nSteps debug\n", argv[0]);
     return -1;
   }
 
@@ -24,6 +24,7 @@ int main(int argc, char const *argv[]) {
   int m = atoi(argv[2]);
   double prob = atof(argv[3]);
   int nSteps = atoi(argv[4]);
+  int debug = atoi(argv[5]);
   // printf("%d %d %lf %d\n", n, m, prob, nSteps);
 
   // Check that arguments are valid
@@ -43,8 +44,10 @@ int main(int argc, char const *argv[]) {
   // Create initial state
   createInitialState(state, n, m, prob);
 
-  // printf("Initial state:\n");
-  // printMatrix(state, n, m);
+  if (debug) {
+    printf("Initial state:\n");
+    printMatrix(state, n, m);
+  }
 
   double t1 = get_wall_seconds();
   // Evolve the system
@@ -52,8 +55,10 @@ int main(int argc, char const *argv[]) {
   // Print time it took to do the simulation
   printf("%lf\n", get_wall_seconds() - t1);
 
-  // printf("Final state:\n");
-  // printMatrix(state, n, m);
+  if (debug) {
+    printf("Final state:\n");
+    printMatrix(state, n, m);
+  }
 
   // Free data structures
   freeMatrix(state, n, m);
