@@ -14,8 +14,8 @@ int** tmp;  // Temporal pointer
 int main(int argc, char const *argv[]) {
 
   // Check that arguments are provided
-  if (argc != 6) {
-    printf("Usage: %s n m prob nSteps debug\n", argv[0]);
+  if (argc != 7) {
+    printf("Usage: %s n m prob nSteps seed debug\n", argv[0]);
     return -1;
   }
 
@@ -24,7 +24,8 @@ int main(int argc, char const *argv[]) {
   int m = atoi(argv[2]);
   double prob = atof(argv[3]);
   int nSteps = atoi(argv[4]);
-  int debug = atoi(argv[5]);
+  int seed = atoi(argv[5]);
+  int debug = atoi(argv[6]);
   // printf("%d %d %lf %d\n", n, m, prob, nSteps);
 
   // Check that arguments are valid
@@ -33,9 +34,12 @@ int main(int argc, char const *argv[]) {
     return -1;
   }
 
-  // Initialize arbitrary seed for random numbers
-  // srand(time(NULL));
-  srand(1);
+  // Initialize arbitrary seed for random numbers (or not!)
+  if (seed < 0) {
+    srand(time(NULL));
+  } else {
+    srand((unsigned int) seed);
+  }
 
   // Initialize data structures
   state = allocateMatrix(n, m);

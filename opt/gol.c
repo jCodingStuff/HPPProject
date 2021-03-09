@@ -19,8 +19,8 @@ char** restrict other; // State at odd times (1, 3, 5, etc.)
 int main(int argc, char const *argv[]) {
 
   // Check that arguments are provided
-  if (argc != 6) {
-    printf("Usage: %s n m prob nSteps debug\n", argv[0]);
+  if (argc != 7) {
+    printf("Usage: %s n m prob nSteps seed debug\n", argv[0]);
     return -1;
   }
 
@@ -29,7 +29,8 @@ int main(int argc, char const *argv[]) {
   const int m = atoi(argv[2]);
   const double prob = atof(argv[3]);
   const int nSteps = atoi(argv[4]);
-  const int debug = atoi(argv[5]);
+  const int seed = atoi(argv[5]);
+  const int debug = atoi(argv[6]);
   // printf("%d %d %lf %d\n", n, m, prob, nSteps);
 
   // Check that arguments are valid
@@ -38,9 +39,12 @@ int main(int argc, char const *argv[]) {
     return -1;
   }
 
-  // Initialize arbitrary seed for random numbers
-  // srand(time(NULL));
-  srand(1);
+  // Initialize arbitrary seed for random numbers (or not!)
+  if (seed < 0) {
+    srand(time(NULL));
+  } else {
+    srand((unsigned int) seed);
+  }
 
   // Initialize data structures
   state = allocateMatrix(n, m);
