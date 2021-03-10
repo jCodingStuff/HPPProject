@@ -1,7 +1,7 @@
 CC = gcc
 LD = gcc
 CFLAGS = -g -O3 -Wall -fopenmp -Winline -march=native -ffast-math
-LDFLAGS= -fopenmp
+LDFLAGS= -fopenmp -ffast-math
 RM = /bin/rm -f
 OBJS = gol.o utils.o
 EXEC = gol
