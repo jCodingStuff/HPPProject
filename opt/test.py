@@ -2,7 +2,7 @@ import subprocess
 
 
 output_file = 'test_result.txt'
-grid = ['1000', '2000', '3000', '4000', '5000']
+grid = ['1000', '2000', '3000', '4000', '5000', '6000', '7000']
 prob = '0.5'
 nsteps = '100'
 debug = '0'
@@ -18,7 +18,7 @@ for index_i, i in enumerate(grid):
         subprocess_return = proc.stdout.read().strip()
 #        print(subprocess_return)
         times[index_i][j] = str(float(subprocess_return))
-    print('{}% complete!'.format(((index_i+1)/len(n_threads))*100))
+    print('{}% complete!'.format(((index_i+1)/len(grid))*100))
 
 with open(output_file, 'w') as f:
     f.writelines([' '.join(line) + '\n' for line in times])
