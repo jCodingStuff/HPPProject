@@ -13,6 +13,9 @@ int** tmp;  // Temporal pointer
 
 int main(int argc, char const *argv[]) {
 
+  // Take initial time
+  double t1 = get_wall_seconds();
+
   // Check that arguments are provided
   if (argc != 7) {
     printf("Usage: %s n m prob nSteps seed debug\n", argv[0]);
@@ -48,17 +51,16 @@ int main(int argc, char const *argv[]) {
   // Create initial state
   createInitialState(state, n, m, prob);
 
+  // Print initial state
   if (debug) {
     printf("Initial state:\n");
     printMatrix(state, n, m);
   }
 
-  double t1 = get_wall_seconds();
   // Evolve the system
   evolve(n, m, nSteps);
-  // Print time it took to do the simulation
-  printf("%lf\n", get_wall_seconds() - t1);
 
+  // Print final state
   if (debug) {
     printf("Final state:\n");
     printMatrix(state, n, m);
@@ -67,6 +69,14 @@ int main(int argc, char const *argv[]) {
   // Free data structures
   freeMatrix(state, n, m);
   freeMatrix(other, n, m);
+
+  // Print time it took to run the code
+  t1 = get_wall_seconds() - t1;
+  if (debug) {
+    printf("Execution took %lf seconds\n", t1);
+  } else {
+    printf("%lf\n", t1);
+  }
 
   return 0;
 }

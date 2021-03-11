@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <sys/time.h>
 #include "utils.h"
+#include "gol.h"
 
 
 // Forward declaration of static methods
@@ -59,9 +60,11 @@ void freeMatrix(char** restrict mat, const int nRows, const int nCols) {
  *  m: number of columns of the matrix
  *  prob: probability of a cell being alive
  *  nThreads: number of threads to use
+ *  threadData: pointer to the first element of the array containing thread data
  */
 void createInitialState(char** restrict mat, const int n, const int m,
-                        const double prob, const int nThreads) {
+                        const double prob, const int nThreads,
+                        tdata_t* restrict threadData) {
   int i, j;
   for (i = 0; i < n; i++) {
     for (j = 0; j < m; j++) {
