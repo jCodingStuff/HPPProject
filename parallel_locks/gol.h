@@ -14,7 +14,6 @@ typedef struct tdata {
   int i1;  // Exclusive
 } tdata_t;
 
-void evolve(const int n, const int m, const int nSteps, const int nThreads,
-            tdata_t* restrict threadData);
+void* evolveThread(void* arg);
 
 #endif

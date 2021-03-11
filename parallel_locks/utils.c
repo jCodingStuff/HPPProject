@@ -1,7 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <sys/time.h>
-#include <omp.h>
 #include "utils.h"
 #include "gol.h"
 
@@ -60,40 +59,14 @@ void freeMatrix(char** restrict mat, const int nRows, const int nCols) {
  *  n: number of rows of the matrix
  *  m: number of columns of the matrix
  *  prob: probability of a cell being alive
- *  nThreads: number of threads to use
- *  threadData: pointer to the first element of the array containing thread data
  */
 void createInitialState(char** restrict mat, const int n, const int m,
-                        const double prob, const int nThreads,
-                        tdata_t* restrict threadData) {
+                        const double prob) {
   int i, j;
-  int tid;
-  #pragma omp parallel num_threads(nThreads) private(i, j, tid)
-  {
-
-    tid = omp_get_thread_num();
-
-    // First row
-    if (tid == 0) {
-      for (j = 0; j < m; j++) {
-        mat[0][j] = cRandom() <= prob ? 1 : 0;
-      }
+  for (i = 0; i < n; i++) {
+    for (j = 0; j < m; j++) {
+      mat[i][j] = cRandom() <= prob ? 1 : 0;
     }
-
-    // Rows 2 to n-2
-    for (i = threadData[tid].i0; i < threadData[tid].i1; i++) {
-      for (j = 0; j < m; j++) {
-        mat[i][j] = cRandom() <= prob ? 1 : 0;
-      }
-    }
-
-    // Last rows
-    if (tid == nThreads-1) {
-      for (j = 0; j < m; j++) {
-        mat[n-1][j] = cRandom() <= prob ? 1 : 0;
-      }
-    }
-
   }
 }
 

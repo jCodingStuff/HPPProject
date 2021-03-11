@@ -72,7 +72,7 @@ int main(int argc, char const *argv[]) {
   }
 
   // Create initial state
-  createInitialState(state, n, m, prob, nThreads, threadData);
+  createInitialState(state, n, m, prob);
 
   // Print initial state
   if (debug) {
@@ -129,147 +129,262 @@ void evolve(const int n, const int m, const int nSteps, const int nThreads,
 
     tid = omp_get_thread_num();
 
-    for (k = 0; k < nSteps; k+=2) {
+    if (tid == 0) {
+      for (k = 0; k < nSteps; k+=2) {
 
-      // FIRST ITERATION
-      {
-      // First row (i=0)
-      if (tid == 0) {
-        // First column (j=0)
-        field = state[n-1][m-1] + state[n-1][0] + state[n-1][1]
-                    + state[0][m-1] + state[0][0] + state[0][1]
-                    + state[1][m-1] + state[1][0] + state[1][1];
-        decide(state[0][0], other, 0, 0, field);
-        // Other columns (j=1 to m-2)
-        for (j=1; j <= m - 2; j++) {
-          field = state[n-1][j-1] + state[n-1][j] + state[n-1][j+1]
-                      + state[0][j-1] + state[0][j] + state[0][j+1]
-                      + state[1][j-1] + state[1][j] + state[1][j+1];
-          decide(state[0][j], other, 0, j, field);
+        // FIRST ITERATION
+        {
+        // First row (i=0)
+          // First column (j=0)
+          field = state[n-1][m-1] + state[n-1][0] + state[n-1][1]
+                      + state[0][m-1] + state[0][0] + state[0][1]
+                      + state[1][m-1] + state[1][0] + state[1][1];
+          decide(state[0][0], other, 0, 0, field);
+          // Other columns (j=1 to m-2)
+          for (j=1; j <= m - 2; j++) {
+            field = state[n-1][j-1] + state[n-1][j] + state[n-1][j+1]
+                        + state[0][j-1] + state[0][j] + state[0][j+1]
+                        + state[1][j-1] + state[1][j] + state[1][j+1];
+            decide(state[0][j], other, 0, j, field);
+          }
+          // Last column (j=m-1)
+          field = state[n-1][m-2] + state[n-1][m-1] + state[n-1][0]
+                      + state[0][m-2] + state[0][m-1] + state[0][0]
+                      + state[1][m-2] + state[1][m-1] + state[1][0];
+          decide(state[0][m-1], other, 0, m-1, field);
+
+        // Other rows (i=1 to n-2) - Note the separation for each thread
+        for (i = threadData[tid].i0; i < threadData[tid].i1; i++) {
+          // First column (j=0)
+          field = state[i-1][m-1] + state[i-1][0] + state[i-1][1]
+                      + state[i][m-1] + state[i][0] + state[i][1]
+                      + state[i+1][m-1] + state[i+1][0] + state[i+1][1];
+          decide(state[i][0], other, i, 0, field);
+          // Other columns (j=1 to m-2)
+          for (j=1; j <= m - 2; j++) {
+            field = state[i-1][j-1] + state[i-1][j] + state[i-1][j+1]
+                        + state[i][j-1] + state[i][j] + state[i][j+1]
+                        + state[i+1][j-1] + state[i+1][j] + state[i+1][j+1];
+            decide(state[i][j], other, i, j, field);
+          }
+          // Last column (j=m-1)
+          field = state[i-1][m-2] + state[i-1][m-1] + state[i-1][0]
+                      + state[i][m-2] + state[i][m-1] + state[i][0]
+                      + state[i+1][m-2] + state[i+1][m-1] + state[i+1][0];
+          decide(state[i][m-1], other, i, m-1, field);
         }
-        // Last column (j=m-1)
-        field = state[n-1][m-2] + state[n-1][m-1] + state[n-1][0]
-                    + state[0][m-2] + state[0][m-1] + state[0][0]
-                    + state[1][m-2] + state[1][m-1] + state[1][0];
-        decide(state[0][m-1], other, 0, m-1, field);
-      }
 
-      // Other rows (i=1 to n-2) - Note the separation for each thread
-      for (i = threadData[tid].i0; i < threadData[tid].i1; i++) {
-        // First column (j=0)
-        field = state[i-1][m-1] + state[i-1][0] + state[i-1][1]
-                    + state[i][m-1] + state[i][0] + state[i][1]
-                    + state[i+1][m-1] + state[i+1][0] + state[i+1][1];
-        decide(state[i][0], other, i, 0, field);
-        // Other columns (j=1 to m-2)
-        for (j=1; j <= m - 2; j++) {
-          field = state[i-1][j-1] + state[i-1][j] + state[i-1][j+1]
-                      + state[i][j-1] + state[i][j] + state[i][j+1]
-                      + state[i+1][j-1] + state[i+1][j] + state[i+1][j+1];
-          decide(state[i][j], other, i, j, field);
         }
-        // Last column (j=m-1)
-        field = state[i-1][m-2] + state[i-1][m-1] + state[i-1][0]
-                    + state[i][m-2] + state[i][m-1] + state[i][0]
-                    + state[i+1][m-2] + state[i+1][m-1] + state[i+1][0];
-        decide(state[i][m-1], other, i, m-1, field);
-      }
 
-      // Last row (i=n-1)
-      if (tid == nThreads - 1) {
-        // First column (j=0)
-        field = state[n-2][m-1] + state[n-2][0] + state[n-2][1]
-                    + state[n-1][m-1] + state[n-1][0] + state[n-1][1]
-                    + state[0][m-1] + state[0][0] + state[0][1];
-        decide(state[n-1][0], other, n-1, 0, field);
-        // Other columns (j=1 to m-2)
-        for (j=1; j <= m - 2; j++) {
-          field = state[n-2][j-1] + state[n-2][j] + state[n-2][j+1]
-                      + state[n-1][j-1] + state[n-1][j]  + state[n-1][j+1]
-                      + state[0][j-1] + state[0][j] + state[0][j+1];
-          decide(state[n-1][j], other, n-1, j, field);
+        #pragma omp barrier
+
+        // SECOND ITERATION
+        {
+        // First row (i=0)
+          // First column (j=0)
+          field = other[n-1][m-1] + other[n-1][0] + other[n-1][1]
+                      + other[0][m-1] + other[0][0] + other[0][1]
+                      + other[1][m-1] + other[1][0] + other[1][1];
+          decide(other[0][0], state, 0, 0, field);
+          // Other columns (j=1 to m-2)
+          for (j=1; j <= m - 2; j++) {
+            field = other[n-1][j-1] + other[n-1][j] + other[n-1][j+1]
+                        + other[0][j-1] + other[0][j] + other[0][j+1]
+                        + other[1][j-1] + other[1][j] + other[1][j+1];
+            decide(other[0][j], state, 0, j, field);
+          }
+          // Last column (j=m-1)
+          field = other[n-1][m-2] + other[n-1][m-1] + other[n-1][0]
+                      + other[0][m-2] + other[0][m-1] + other[0][0]
+                      + other[1][m-2] + other[1][m-1] + other[1][0];
+          decide(other[0][m-1], state, 0, m-1, field);
+
+        // Other rows (i=1 to n-2) - Note the separation for each thread
+        for (i = threadData[tid].i0; i < threadData[tid].i1; i++) {
+          // First column (j=0)
+          field = other[i-1][m-1] + other[i-1][0] + other[i-1][1]
+                      + other[i][m-1] + other[i][0] + other[i][1]
+                      + other[i+1][m-1] + other[i+1][0] + other[i+1][1];
+          decide(other[i][0], state, i, 0, field);
+          // Other columns (j=1 to m-2)
+          for (j=1; j <= m - 2; j++) {
+            field = other[i-1][j-1] + other[i-1][j] + other[i-1][j+1]
+                        + other[i][j-1] + other[i][j] + other[i][j+1]
+                        + other[i+1][j-1] + other[i+1][j] + other[i+1][j+1];
+            decide(other[i][j], state, i, j, field);
+          }
+          // Last column (j=m-1)
+          field = other[i-1][m-2] + other[i-1][m-1] + other[i-1][0]
+                      + other[i][m-2] + other[i][m-1] + other[i][0]
+                      + other[i+1][m-2] + other[i+1][m-1] + other[i+1][0];
+          decide(other[i][m-1], state, i, m-1, field);
         }
-        // Last column (j=m-1)
-        field = state[n-2][m-2] + state[n-2][m-1] + state[n-2][0]
-                    + state[n-1][m-2] + state[n-1][m-1] + state[n-1][0]
-                    + state[0][m-2] + state[0][m-1] + state[0][0];
-        decide(state[n-1][m-1], other, n-1, m-1, field);
-      }
 
-      }
-
-      #pragma omp barrier
-
-      // SECOND ITERATION
-      {
-      // First row (i=0)
-      if (tid == 0) {
-        // First column (j=0)
-        field = other[n-1][m-1] + other[n-1][0] + other[n-1][1]
-                    + other[0][m-1] + other[0][0] + other[0][1]
-                    + other[1][m-1] + other[1][0] + other[1][1];
-        decide(other[0][0], state, 0, 0, field);
-        // Other columns (j=1 to m-2)
-        for (j=1; j <= m - 2; j++) {
-          field = other[n-1][j-1] + other[n-1][j] + other[n-1][j+1]
-                      + other[0][j-1] + other[0][j] + other[0][j+1]
-                      + other[1][j-1] + other[1][j] + other[1][j+1];
-          decide(other[0][j], state, 0, j, field);
         }
-        // Last column (j=m-1)
-        field = other[n-1][m-2] + other[n-1][m-1] + other[n-1][0]
-                    + other[0][m-2] + other[0][m-1] + other[0][0]
-                    + other[1][m-2] + other[1][m-1] + other[1][0];
-        decide(other[0][m-1], state, 0, m-1, field);
-      }
 
-      // Other rows (i=1 to n-2) - Note the separation for each thread
-      for (i = threadData[tid].i0; i < threadData[tid].i1; i++) {
-        // First column (j=0)
-        field = other[i-1][m-1] + other[i-1][0] + other[i-1][1]
-                    + other[i][m-1] + other[i][0] + other[i][1]
-                    + other[i+1][m-1] + other[i+1][0] + other[i+1][1];
-        decide(other[i][0], state, i, 0, field);
-        // Other columns (j=1 to m-2)
-        for (j=1; j <= m - 2; j++) {
-          field = other[i-1][j-1] + other[i-1][j] + other[i-1][j+1]
-                      + other[i][j-1] + other[i][j] + other[i][j+1]
-                      + other[i+1][j-1] + other[i+1][j] + other[i+1][j+1];
-          decide(other[i][j], state, i, j, field);
+        #pragma omp barrier
+
+      }
+    } else if (tid == nThreads-1) {
+      for (k = 0; k < nSteps; k+=2) {
+
+        // FIRST ITERATION
+        {
+
+        // Other rows (i=1 to n-2) - Note the separation for each thread
+        for (i = threadData[tid].i0; i < threadData[tid].i1; i++) {
+          // First column (j=0)
+          field = state[i-1][m-1] + state[i-1][0] + state[i-1][1]
+                      + state[i][m-1] + state[i][0] + state[i][1]
+                      + state[i+1][m-1] + state[i+1][0] + state[i+1][1];
+          decide(state[i][0], other, i, 0, field);
+          // Other columns (j=1 to m-2)
+          for (j=1; j <= m - 2; j++) {
+            field = state[i-1][j-1] + state[i-1][j] + state[i-1][j+1]
+                        + state[i][j-1] + state[i][j] + state[i][j+1]
+                        + state[i+1][j-1] + state[i+1][j] + state[i+1][j+1];
+            decide(state[i][j], other, i, j, field);
+          }
+          // Last column (j=m-1)
+          field = state[i-1][m-2] + state[i-1][m-1] + state[i-1][0]
+                      + state[i][m-2] + state[i][m-1] + state[i][0]
+                      + state[i+1][m-2] + state[i+1][m-1] + state[i+1][0];
+          decide(state[i][m-1], other, i, m-1, field);
         }
-        // Last column (j=m-1)
-        field = other[i-1][m-2] + other[i-1][m-1] + other[i-1][0]
-                    + other[i][m-2] + other[i][m-1] + other[i][0]
-                    + other[i+1][m-2] + other[i+1][m-1] + other[i+1][0];
-        decide(other[i][m-1], state, i, m-1, field);
-      }
 
-      // Last row (i=n-1)
-      if (tid == nThreads - 1) {
-        // First column (j=0)
-        field = other[n-2][m-1] + other[n-2][0] + other[n-2][1]
-                    + other[n-1][m-1] + other[n-1][0] + other[n-1][1]
-                    + other[0][m-1] + other[0][0] + other[0][1];
-        decide(other[n-1][0], state, n-1, 0, field);
-        // Other columns (j=1 to m-2)
-        for (j=1; j <= m - 2; j++) {
-          field = other[n-2][j-1] + other[n-2][j] + other[n-2][j+1]
-                      + other[n-1][j-1] + other[n-1][j]  + other[n-1][j+1]
-                      + other[0][j-1] + other[0][j] + other[0][j+1];
-          decide(other[n-1][j], state, n-1, j, field);
+        // Last row (i=n-1)
+          // First column (j=0)
+          field = state[n-2][m-1] + state[n-2][0] + state[n-2][1]
+                      + state[n-1][m-1] + state[n-1][0] + state[n-1][1]
+                      + state[0][m-1] + state[0][0] + state[0][1];
+          decide(state[n-1][0], other, n-1, 0, field);
+          // Other columns (j=1 to m-2)
+          for (j=1; j <= m - 2; j++) {
+            field = state[n-2][j-1] + state[n-2][j] + state[n-2][j+1]
+                        + state[n-1][j-1] + state[n-1][j]  + state[n-1][j+1]
+                        + state[0][j-1] + state[0][j] + state[0][j+1];
+            decide(state[n-1][j], other, n-1, j, field);
+          }
+          // Last column (j=m-1)
+          field = state[n-2][m-2] + state[n-2][m-1] + state[n-2][0]
+                      + state[n-1][m-2] + state[n-1][m-1] + state[n-1][0]
+                      + state[0][m-2] + state[0][m-1] + state[0][0];
+          decide(state[n-1][m-1], other, n-1, m-1, field);
+
         }
-        // Last column (j=m-1)
-        field = other[n-2][m-2] + other[n-2][m-1] + other[n-2][0]
-                    + other[n-1][m-2] + other[n-1][m-1] + other[n-1][0]
-                    + other[0][m-2] + other[0][m-1] + other[0][0];
-        decide(other[n-1][m-1], state, n-1, m-1, field);
-      }
+
+        #pragma omp barrier
+
+        // SECOND ITERATION
+        {
+
+        // Other rows (i=1 to n-2) - Note the separation for each thread
+        for (i = threadData[tid].i0; i < threadData[tid].i1; i++) {
+          // First column (j=0)
+          field = other[i-1][m-1] + other[i-1][0] + other[i-1][1]
+                      + other[i][m-1] + other[i][0] + other[i][1]
+                      + other[i+1][m-1] + other[i+1][0] + other[i+1][1];
+          decide(other[i][0], state, i, 0, field);
+          // Other columns (j=1 to m-2)
+          for (j=1; j <= m - 2; j++) {
+            field = other[i-1][j-1] + other[i-1][j] + other[i-1][j+1]
+                        + other[i][j-1] + other[i][j] + other[i][j+1]
+                        + other[i+1][j-1] + other[i+1][j] + other[i+1][j+1];
+            decide(other[i][j], state, i, j, field);
+          }
+          // Last column (j=m-1)
+          field = other[i-1][m-2] + other[i-1][m-1] + other[i-1][0]
+                      + other[i][m-2] + other[i][m-1] + other[i][0]
+                      + other[i+1][m-2] + other[i+1][m-1] + other[i+1][0];
+          decide(other[i][m-1], state, i, m-1, field);
+        }
+
+        // Last row (i=n-1)
+          // First column (j=0)
+          field = other[n-2][m-1] + other[n-2][0] + other[n-2][1]
+                      + other[n-1][m-1] + other[n-1][0] + other[n-1][1]
+                      + other[0][m-1] + other[0][0] + other[0][1];
+          decide(other[n-1][0], state, n-1, 0, field);
+          // Other columns (j=1 to m-2)
+          for (j=1; j <= m - 2; j++) {
+            field = other[n-2][j-1] + other[n-2][j] + other[n-2][j+1]
+                        + other[n-1][j-1] + other[n-1][j]  + other[n-1][j+1]
+                        + other[0][j-1] + other[0][j] + other[0][j+1];
+            decide(other[n-1][j], state, n-1, j, field);
+          }
+          // Last column (j=m-1)
+          field = other[n-2][m-2] + other[n-2][m-1] + other[n-2][0]
+                      + other[n-1][m-2] + other[n-1][m-1] + other[n-1][0]
+                      + other[0][m-2] + other[0][m-1] + other[0][0];
+          decide(other[n-1][m-1], state, n-1, m-1, field);
+
+        }
+
+        #pragma omp barrier
 
       }
+    } else {
+      for (k = 0; k < nSteps; k+=2) {
 
-      #pragma omp barrier
+        // FIRST ITERATION
+        {
 
+        // Other rows (i=1 to n-2) - Note the separation for each thread
+        for (i = threadData[tid].i0; i < threadData[tid].i1; i++) {
+          // First column (j=0)
+          field = state[i-1][m-1] + state[i-1][0] + state[i-1][1]
+                      + state[i][m-1] + state[i][0] + state[i][1]
+                      + state[i+1][m-1] + state[i+1][0] + state[i+1][1];
+          decide(state[i][0], other, i, 0, field);
+          // Other columns (j=1 to m-2)
+          for (j=1; j <= m - 2; j++) {
+            field = state[i-1][j-1] + state[i-1][j] + state[i-1][j+1]
+                        + state[i][j-1] + state[i][j] + state[i][j+1]
+                        + state[i+1][j-1] + state[i+1][j] + state[i+1][j+1];
+            decide(state[i][j], other, i, j, field);
+          }
+          // Last column (j=m-1)
+          field = state[i-1][m-2] + state[i-1][m-1] + state[i-1][0]
+                      + state[i][m-2] + state[i][m-1] + state[i][0]
+                      + state[i+1][m-2] + state[i+1][m-1] + state[i+1][0];
+          decide(state[i][m-1], other, i, m-1, field);
+        }
+
+        }
+
+        #pragma omp barrier
+
+        // SECOND ITERATION
+        {
+
+        // Other rows (i=1 to n-2) - Note the separation for each thread
+        for (i = threadData[tid].i0; i < threadData[tid].i1; i++) {
+          // First column (j=0)
+          field = other[i-1][m-1] + other[i-1][0] + other[i-1][1]
+                      + other[i][m-1] + other[i][0] + other[i][1]
+                      + other[i+1][m-1] + other[i+1][0] + other[i+1][1];
+          decide(other[i][0], state, i, 0, field);
+          // Other columns (j=1 to m-2)
+          for (j=1; j <= m - 2; j++) {
+            field = other[i-1][j-1] + other[i-1][j] + other[i-1][j+1]
+                        + other[i][j-1] + other[i][j] + other[i][j+1]
+                        + other[i+1][j-1] + other[i+1][j] + other[i+1][j+1];
+            decide(other[i][j], state, i, j, field);
+          }
+          // Last column (j=m-1)
+          field = other[i-1][m-2] + other[i-1][m-1] + other[i-1][0]
+                      + other[i][m-2] + other[i][m-1] + other[i][0]
+                      + other[i+1][m-2] + other[i+1][m-1] + other[i+1][0];
+          decide(other[i][m-1], state, i, m-1, field);
+        }
+
+        }
+
+        #pragma omp barrier
+
+      }
     }
+
   }
 
 }

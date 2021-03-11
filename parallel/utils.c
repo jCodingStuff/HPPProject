@@ -59,12 +59,9 @@ void freeMatrix(char** restrict mat, const int nRows, const int nCols) {
  *  n: number of rows of the matrix
  *  m: number of columns of the matrix
  *  prob: probability of a cell being alive
- *  nThreads: number of threads to use
- *  threadData: pointer to the first element of the array containing thread data
  */
 void createInitialState(char** restrict mat, const int n, const int m,
-                        const double prob, const int nThreads,
-                        tdata_t* restrict threadData) {
+                        const double prob) {
   int i, j;
   for (i = 0; i < n; i++) {
     for (j = 0; j < m; j++) {
